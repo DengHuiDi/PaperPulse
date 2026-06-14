@@ -1,26 +1,158 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #faf8f5;
+  --foreground: #2c3e50;
+
+  --thesis: #f59e0b;
+  --thesis-soft: #fef3c7;
+  --concept: #ef4444;
+  --concept-soft: #fee2e2;
+  --evidence: #0ea5e9;
+  --evidence-soft: #dbeafe;
+  --concession: #10b981;
+  --concession-soft: #d1fae5;
+  --method: #8b5cf6;
+  --method-soft: #ede9fe;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-paper-bg: var(--background);
+  --color-text-primary: var(--foreground);
+  --font-sans: var(--font-ibm-plex-sans);
+  --font-serif: var(--font-lora);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-feature-settings: "ss01", "cv11";
+}
+
+/* === 通用：高端背景纸纹 === */
+.paper-texture {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.04) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.04) 0px, transparent 50%);
+}
+
+/* === 通用：玻璃毛玻璃 === */
+.glass {
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  background-color: rgba(255, 255, 255, 0.78);
+}
+
+/* === 通用：精致阴影 === */
+.shadow-elevated {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 12px rgba(15, 23, 42, 0.06),
+    0 24px 48px -16px rgba(15, 23, 42, 0.12);
+}
+
+.shadow-soft {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+/* === 5 种 type 的渐变边 === */
+.type-thesis {
+  --c1: #fbbf24;
+  --c2: #f59e0b;
+  --soft: var(--thesis-soft);
+}
+.type-concept {
+  --c1: #f87171;
+  --c2: #ef4444;
+  --soft: var(--concept-soft);
+}
+.type-evidence {
+  --c1: #38bdf8;
+  --c2: #0ea5e9;
+  --soft: var(--evidence-soft);
+}
+.type-concession {
+  --c1: #34d399;
+  --c2: #10b981;
+  --soft: var(--concession-soft);
+}
+.type-method {
+  --c1: #a78bfa;
+  --c2: #8b5cf6;
+  --soft: var(--method-soft);
+}
+
+.gradient-bar {
+  background: linear-gradient(180deg, var(--c1), var(--c2));
+}
+
+/* === 横向滚动条隐藏但保留滚动 === */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* === 进度条动效 === */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.animate-pulse-soft {
+  animation: pulse-soft 2.4s ease-in-out infinite;
+}
+
+@keyframes slide-up-fade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-slide-up {
+  animation: slide-up-fade 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes flow-line {
+  0% { stroke-dashoffset: 100; }
+  100% { stroke-dashoffset: 0; }
+}
+.animate-flow {
+  stroke-dasharray: 4 4;
+  animation: flow-line 1.2s linear infinite;
+}
+
+/* === 高亮文本（5 色） === */
+.hl-thesis {
+  background: linear-gradient(180deg, transparent 55%, var(--thesis-soft) 55%);
+  border-bottom: 1px dashed var(--thesis);
+  padding: 0 1px;
+}
+.hl-concept {
+  background: linear-gradient(180deg, transparent 55%, var(--concept-soft) 55%);
+  border-bottom: 1px dashed var(--concept);
+  padding: 0 1px;
+}
+.hl-evidence {
+  background: linear-gradient(180deg, transparent 55%, var(--evidence-soft) 55%);
+  border-bottom: 1px dashed var(--evidence);
+  padding: 0 1px;
+}
+.hl-concession {
+  background: linear-gradient(180deg, transparent 55%, var(--concession-soft) 55%);
+  border-bottom: 1px dashed var(--concession);
+  padding: 0 1px;
+}
+.hl-method {
+  background: linear-gradient(180deg, transparent 55%, var(--method-soft) 55%);
+  border-bottom: 1px dashed var(--method);
+  padding: 0 1px;
 }

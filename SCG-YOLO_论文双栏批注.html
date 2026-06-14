@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCG-YOLO 论文双栏批注</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --nav-bg: #1a2744;
+            --paper-bg: #faf8f5;
+            --thesis-yellow: #fff3cd;
+            --concept-red: #f8d7da;
+            --evidence-blue: #d1ecf1;
+            --concession-green: #d4edda;
+            --method-purple: #e2d9f3;
+            --border-color: #dee2e6;
+            --text-primary: #2c3e50;
+            --text-secondary: #5a6c7d;
+            --accent: #1a2744;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--paper-bg);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        /* 顶部导航栏 */
+        .top-nav {
+            background: var(--nav-bg);
+            color: white;
+            padding: 1.5rem 2rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .nav-title {
+            font-family: 'Lora', serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .color-legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            font-size: 0.85rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .legend-thesis { background: var(--thesis-yellow); }
+        .legend-concept { background: var(--concept-red); }
+        .legend-evidence { background: var(--evidence-blue); }
+        .legend-concession { background: var(--concession-green); }
+        .legend-method { background: var(--method-purple); }
+
+        /* 章节导航条 */
+        .section-nav {
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 2rem;
+            position: sticky;
+            top: 110px;
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .section-nav a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .section-nav a:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* 主容器 */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            padding-top: 190px;
+        }
+
+        /* 双栏布局 */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 1024px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 左栏 - 原文 */
+        .original-column {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .column-header {
+            font-family: 'Lora', serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .section-block {
+            margin-bottom: 2rem;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-family: 'Lora', serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--nav-bg);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 1.2rem;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        p {
+            font-family: 'Lora', serif;
+            margin-bottom: 1rem;
+            text-align: justify;
+            font-size: 0.95rem;
+        }
+
+        /* 高亮样式 */
+        .highlight-thesis {
+            background: var(--thesis-yellow);
+            padding: 0.1em 0.3em;
+            border-radius: 3px;
+        }
+
+        .highlight-concept {
+            background: var(--concept-red);
+            padding: 0.1em 0.3em;
+            border-radius: 3px;
+        }
+
+        .highlight-evidence {
+            background: var(--evidence-blue);
+            padding: 0.1em 0.3em;
+            border-radius: 3px;
+        }
+
+        .highlight-concession {
+            background: var(--concession-green);
+            padding: 0.1em 0.3em;
+            border-radius: 3px;
+        }
+
+        .highlight-method {
+            background: var(--method-purple);
+            padding: 0.1em 0.3em;
+            border-radius: 3px;
+        }
+
+        /* 右栏 - 批注 */
+        .annotation-column {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 2rem;
+            border-left: 4px solid var(--accent);
+        }
+
+        .annotation-section {
+            margin-bottom: 2rem;
+        }
+
+        .annotation-card {
+            background: white;
+            border-radius: 6px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border-left: 3px solid var(--accent);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+
+        .annotation-card.concession {
+            border-left-color: #28a745;
+        }
+
+        .annotation-card.evidence {
+            border-left-color: #17a2b8;
+        }
+
+        .annotation-card.method {
+            border-left-color: #6f42c1;
+        }
+
+        .annotation-card.thesis {
+            border-left-color: #ffc107;
+        }
+
+        .annotation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .annotation-type {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.2rem 0.6rem;
+            border-radius: 3px;
+            color: white;
+        }
+
+        .type-function { background: var(--accent); }
+        .type-logic { background: #6c757d; }
+        .type-technique { background: #e67e22; }
+        .type-weakness { background: #dc3545; }
+
+        .annotation-title {
+            font-weight: 600;
+            color: var(--accent);
+            font-size: 0.95rem;
+        }
+
+        .annotation-content {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .annotation-content strong {
+            color: var(--text-primary);
+        }
+
+        .annotation-content ul {
+            margin: 0.5rem 0;
+            padding-left: 1.2rem;
+        }
+
+        .annotation-content li {
+            margin-bottom: 0.3rem;
+        }
+
+        /* 底部论证结构 */
+        .argument-overview {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-top: 3rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .overview-title {
+            font-family: 'Lora', serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--nav-bg);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .argument-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .flow-step {
+            background: var(--accent);
+            color: white;
+            padding: 0.6rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .flow-arrow {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .overview-card {
+            background: var(--paper-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .overview-card-title {
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .overview-card-content {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .strength-item, .weakness-item {
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+        }
+
+        .strength-item {
+            background: #e8f5e9;
+            border-left: 3px solid #4caf50;
+        }
+
+        .weakness-item {
+            background: #ffebee;
+            border-left: 3px solid #f44336;
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 2rem;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .top-nav {
+                padding: 1rem;
+            }
+            
+            .nav-title {
+                font-size: 1.1rem;
+            }
+            
+            .color-legend {
+                gap: 0.75rem;
+                font-size: 0.7rem;
+            }
+            
+            .section-nav {
+                top: 130px;
+                padding: 0.5rem 1rem;
+            }
+            
+            .main-container {
+                padding: 1rem;
+                padding-top: 210px;
+            }
+            
+            .two-column {
+                gap: 1rem;
+            }
+            
+            .original-column, .annotation-column {
+                padding: 1rem;
+            }
+        }
+
+        /* 公式样式 */
+        .formula {
+            font-family: 'Times New Roman', serif;
+            background: #f5f5f5;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            font-style: italic;
+            font-size: 0.9rem;
+            display: block;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+
+        /* 图片占位符 */
+        .figure-placeholder {
+            background: linear-gradient(135deg, #e8e8e8 0%, #d4d4d4 100%);
+            border: 2px dashed #bbb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            margin: 1rem 0;
+            color: #666;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="top-nav">
+        <div class="nav-title">SCG-YOLO: Shift-Context Network With Multidirectional Upsampling and Geometric Quality for Small-Object Detection</div>
+        <div class="color-legend">
+            <div class="legend-item">
+                <div class="legend-color legend-thesis"></div>
+                <span>黄色 = 核心论点/thesis</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-concept"></div>
+                <span>红色 = 关键概念/术语</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-evidence"></div>
+                <span>蓝色 = 实证证据/数据</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-concession"></div>
+                <span>绿色 = 让步/反驳处理</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-method"></div>
+                <span>紫色 = 方法论说明</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 章节导航条 -->
+    <div class="section-nav">
+        <a href="#abstract">摘要</a>
+        <a href="#introduction">I. 引言</a>
+        <a href="#methodology">II. 方法论</a>
+        <a href="#mscu">MSCU模块</a>
+        <a href="#c3k2-cgb">C3K2-CGB模块</a>
+        <a href="#sgqa">SGQA模块</a>
+        <a href="#experiments">III. 实验</a>
+        <a href="#conclusion">IV. 结论</a>
+        <a href="#overview">论证总览</a>
+    </div>
+
+    <!-- 主容器 -->
+    <main class="main-container">
+        
+        <!-- 摘要部分 -->
+        <section id="abstract">
+            <div class="two-column">
+                <div class="original-column">
+                    <div class="column-header">论文原文 — 摘要</div>
+                    <div class="section-block">
+                        <p><strong>Abstract—</strong>With the ongoing progress in remote sensing object detection, small-object detection in complex environments still faces difficulties. The representation of small-object features is often limited, and the localization accuracy can be insufficient, which continues to constrain further improvements in overall performance. To address these challenges, we introduce <span class="highlight-thesis">SCG-YOLO</span>, an improved framework based on YOLO11. First, a <span class="highlight-method">multidirectional shift channel upsampling (MSCU) module</span> applies a shift channel mix mechanism. By performing directional cyclic shifts and reorganizing features across grouped channels, MSCU recovers high-frequency spatial details lost in downsampling. Second, the <span class="highlight-method">C3K2-structured context-guided block (C3K2-CGB)</span> is built by replacing the bottleneck in the backbone's C3K2 block with a context-guided block (CGB). Using a dual-branch design to capture local details and broader context separately, followed by global refinement, CGB enhances small-object representation in complex backgrounds. Finally, the <span class="highlight-method">swish-gated linear unit (SwiGLU)-based localization quality module</span> is integrated into the detection head, where its more stable gradient behavior and more effective feature gating help improve the reliability of bounding box quality assessment for small objects, thereby supporting more accurate localization. <span class="highlight-evidence">On the NWPU-10 and SIMD datasets, SCG-YOLO achieves mAP@0.5 of 85.5% and 82.3%, representing gains of 3.2 and 1.6 percentage points over the baseline.</span></p>
+                    </div>
+                </div>
+                <div class="annotation-column">
+                    <div class="column-header">中文批注 — 摘要</div>
+                    <div class="annotation-section">
+                        <div class="annotation-card thesis">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-function">段落功能</span>
+                            </div>
+                            <div class="annotation-title">研究问题与解决方案概述</div>
+                            <div class="annotation-content">
+                                <strong>段落角色：</strong>提出核心论点，构建研究框架
+                                <ul>
+                                    <li><strong>问题陈述：</strong>复杂环境下小目标检测困难、特征表示受限、定位精度不足</li>
+                                    <li><strong>核心方案：</strong>SCG-YOLO，基于YOLO11的改进框架</li>
+                                    <li><strong>技术框架：</strong>MSCU + C3K2-CGB + SwiGLU定位质量评估</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="annotation-card evidence">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-logic">逻辑位置</span>
+                            </div>
+                            <div class="annotation-title">论证链：问题-方案-验证</div>
+                            <div class="annotation-content">
+                                <strong>论证结构：</strong>
+                                <br>① 问题：特征表示受限 + 定位精度不足
+                                <br>② 方案：三大模块协同
+                                <br>③ 验证：NWPU-10和SIMD数据集
+                                <br><br><strong>数据支撑：</strong>
+                                <br>• NWPU-10: mAP@0.5 = 85.5% (+3.2%)
+                                <br>• SIMD: mAP@0.5 = 82.3% (+1.6%)
+                            </div>
+                        </div>
+                        <div class="annotation-card concession">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-technique">让步处理</span>
+                            </div>
+                            <div class="annotation-title">问题承认策略</div>
+                            <div class="annotation-content">
+                                <strong>让步论证：</strong>
+                                <ul>
+                                    <li>"still faces difficulties" → 承认问题存在</li>
+                                    <li>"often limited" → 承认特征表示局限</li>
+                                    <li>"can be insufficient" → 承认定位精度不足</li>
+                                </ul>
+                                <strong>论证策略：</strong>通过列举具体问题来明确本文研究的必要性
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 引言部分 -->
+        <section id="introduction">
+            <div class="two-column">
+                <div class="original-column">
+                    <div class="column-header">论文原文 — I. 引言</div>
+                    <div class="section-block">
+                        <div class="section-title">研究背景与应用场景</div>
+                        <p><span class="highlight-concept">SMALL-OBJECT detection in remote sensing imagery</span> is a key area in computer vision, with applications in disaster monitoring [1], military reconnaissance, and environmental assessment. The widespread deployment of high-resolution satellites and UAVs has generated vast amounts of data, making manual interpretation increasingly impractical. Remote sensing images present unique challenges, including large variations in object scales, <span class="highlight-concession">complex backgrounds, a high proportion of small objects, and arbitrary orientations</span>, which complicate conventional detection methods.</p>
+                    </div>
+                    
+                    <div class="section-block">
+                        <div class="section-title">技术发展与相关工作</div>
+                        <p>Object detection has progressed from handcrafted feature-based methods to deep learning frameworks. <span class="highlight-concept">R-CNN [2]</span> introduced CNNs for detection, establishing the two-stage paradigm. <span class="highlight-concept">Faster R-CNN [3]</span> further incorporated a region proposal network (RPN) for end-to-end training. Single-stage detectors such as <span class="highlight-concept">YOLO [4]</span> and <span class="highlight-concept">SSD [5]</span> improved efficiency by directly predicting object locations and classes. More recently, transformer-based methods like <span class="highlight-concept">DETR [6]</span> enhanced detection performance. Among these, the YOLO series remains popular for its efficiency, with YOLOv11 employing adaptive feature enhancement and dynamic IoU optimization to improve precision in complex scenarios.</p>
+                        <p>Several YOLO-based variants have focused on improving feature representation and robustness for small-object detection. For example, Fang and Wang [7] proposed a cross-modal attention fusion module. Yao et al. [8] introduced SRM-YOLO. Li et al. [9] developed SOD-YOLO with an enhanced YOLOv8 backbone.</p>
+                    </div>
+                    
+                    <div class="section-block">
+                        <div class="section-title">现存问题与本文贡献</div>
+                        <p>Despite these advances, <span class="highlight-concession">detecting small objects remains challenging due to weak feature representation and inaccurate localization in complex backgrounds</span>. To address these issues, we propose a high-performance small-object detection model based on an improved YOLO11. The main contributions are as follows.</p>
+                        <p><strong>1)</strong> SCG-YOLO, an enhanced YOLO11-based framework, incorporates three key modules: the <span class="highlight-thesis">multidirectional shift channel upsampling (MSCU)</span> for detail recovery, the <span class="highlight-thesis">C3K2-structured context-guided block (C3K2-CGB)</span> for backbone feature enhancement, and the <span class="highlight-thesis">swish-gated linear unit (SwiGLU)-based geometric quality assessor (SGQA)</span> integrated into the detection head to improve localization.</p>
+                        <p><strong>2)</strong> <span class="highlight-thesis">MSCU</span>, which uses shift channel mixing and channel shuffling to restore high-frequency details and enhance small-object feature representation and localization.</p>
+                        <p><strong>3)</strong> <span class="highlight-thesis">C3K2-CGB</span>, designed to enhance feature representation and robustness in complex backgrounds through local-dilated contextual processing.</p>
+                        <p><strong>4)</strong> <span class="highlight-thesis">SGQA</span>, employing a dual-branch gated structure to learn bounding box corner distributions, improving sensitivity to subtle localization differences and consistency between classification confidence and box accuracy.</p>
+                    </div>
+                </div>
+                <div class="annotation-column">
+                    <div class="column-header">中文批注 — I. 引言</div>
+                    <div class="annotation-section">
+                        <div class="annotation-card thesis">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-function">段落功能</span>
+                            </div>
+                            <div class="annotation-title">构建研究背景与论证框架</div>
+                            <div class="annotation-content">
+                                <strong>段落角色：</strong>建立问题域，明确技术定位，梳理相关工作
+                                <ul>
+                                    <li><strong>应用场景：</strong>灾害监测、军事侦察、环境评估</li>
+                                    <li><strong>核心挑战：</strong>目标尺度变化大、复杂背景、小目标占比高、方向任意</li>
+                                    <li><strong>技术演进：</strong>R-CNN → Faster R-CNN → YOLO/SSD → DETR</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="annotation-card evidence">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-logic">论证结构分析</span>
+                            </div>
+                            <div class="annotation-title">逻辑递进：铺垫-问题-方案</div>
+                            <div class="annotation-content">
+                                <strong>论证链条：</strong>
+                                <br>① 遥感图像检测重要性 → ② 技术发展背景 → ③ YOLO系列优势 → ④ 相关工作 → ⑤ YOLO局限 → ⑥ 本文方案
+                                <br><br><strong>技术路径论证：</strong>
+                                <br>• 两阶段 vs 单阶段 → 选择YOLO（效率优先）
+                                <br>• YOLO优势 → 但小目标检测仍困难
+                                <br>• SCG-YOLO → 三大创新
+                            </div>
+                        </div>
+                        <div class="annotation-card concession">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-technique">关键让步处理</span>
+                            </div>
+                            <div class="annotation-title">承认YOLO方法的局限性</div>
+                            <div class="annotation-content">
+                                <strong>让步承认的局限：</strong>
+                                <ul>
+                                    <li>复杂背景干扰严重</li>
+                                    <li>小目标特征表示弱</li>
+                                    <li>复杂背景下定位不准确</li>
+                                </ul>
+                                <strong>论证价值：</strong>明确指出现有方法的三个核心短板
+                            </div>
+                        </div>
+                        <div class="annotation-card">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-weakness">潜在漏洞</span>
+                            </div>
+                            <div class="annotation-title">引言部分的问题</div>
+                            <div class="annotation-content">
+                                <strong>注意：</strong>
+                                <ul>
+                                    <li>相关工作引用过于简略，缺乏对SOD-YOLO等工作的深入分析</li>
+                                    <li>四个贡献点的表述有重复（第一点概述，后面三点细化）</li>
+                                    <li>与SOD-YOLO、IRSTD-YOLO的关系未说明</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 方法论部分 -->
+        <section id="methodology">
+            <div class="two-column">
+                <div class="original-column">
+                    <div class="column-header">论文原文 — II. 方法论</div>
+                    <div class="section-block">
+                        <p>The <span class="highlight-thesis">SCG-YOLO</span> network architecture is shown in Fig. 1. To reduce detail loss during upsampling, the MSCU module performs directional spatial shifts across channels, enabling cross-channel interaction and enhancing high-frequency detail recovery with minimal extra parameters. For improved detection of small and weak targets in complex backgrounds, the C3K2-CGB module is formed by replacing the C3K2 bottleneck. The module integrates local context with higher level semantics to improve feature representation. To address inconsistencies between bounding box localization and classification confidence, the detection head employs an SGQA. The gated mechanism enhances bounding box quality perception and calibrates prediction scores.</p>
+                    </div>
+                </div>
+                <div class="annotation-column">
+                    <div class="column-header">中文批注 — 方法概述</div>
+                    <div class="annotation-section">
+                        <div class="annotation-card method">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-function">段落功能</span>
+                            </div>
+                            <div class="annotation-title">SCG-YOLO架构总览</div>
+                            <div class="annotation-content">
+                                <strong>段落角色：</strong>建立方法论框架
+                                <ul>
+                                    <li><strong>MSCU：</strong>减少上采样细节损失，恢复高频细节</li>
+                                    <li><strong>C3K2-CGB：</strong>增强复杂背景下的小目标特征表示</li>
+                                    <li><strong>SGQA：</strong>解决定位与分类置信度不一致问题</li>
+                                </ul>
+                                <strong>方法论说明：</strong>三个模块分别针对检测流程的不同阶段
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MSCU模块 -->
+        <section id="mscu">
+            <div class="two-column">
+                <div class="original-column">
+                    <div class="column-header">论文原文 — A. MSCU模块</div>
+                    <div class="section-block">
+                        <div class="section-title">多方向移位通道上采样</div>
+                        <p>In small-object detection from remote sensing imagery, <span class="highlight-concession">standard nearest neighbor upsampling is efficient but performs spatial interpolation, which limits its ability to recover high-frequency details lost during deep downsampling and can degrade localization accuracy</span>. To address this, the <span class="highlight-method">MSCU module</span> is introduced. Built upon the efficient upsampling convolutional block [10], MSCU incorporates a shift-based channel mixing mechanism to enhance spatial representation with minimal computational cost. Unlike conventional channel shuffle, which merely reorders channels, the proposed shift operation enables spatial interaction across channel groups through directional cyclic shifts.</p>
+                        
+                        <p>The forward process of MSCU is formulated as:</p>
+                        <p class="formula">MSCU(X) = Dpw ⊙ Sshift ⊙ CS ⊙ Ddw ⊙ Up(X) ... (1)</p>
+                        <p>where <span class="highlight-concept">Up(·)</span> denotes 2× nearest neighbor upsampling, <span class="highlight-concept">Ddw</span> is a 3 × 3 depthwise convolution for enhancing local details, and <span class="highlight-concept">CS(·)</span> performs channel shuffle to strengthen cross-group communication. The operator <span class="highlight-concept">Sshift(·)</span> redistributes spatial cues by shifting channel groups in different directions, while <span class="highlight-concept">Dpw</span> generates adaptive fusion weights for channel recalibration.</p>
+                        
+                        <p>As shown in Fig. 2(b), features are evenly divided into four groups, each shifted horizontally or vertically before concatenation. This directional redistribution allows channel subsets to perceive complementary spatial regions, improving fine-grained feature representation for small-object detection.</p>
+                    </div>
+                </div>
+                <div class="annotation-column">
+                    <div class="column-header">中文批注 — MSCU模块</div>
+                    <div class="annotation-section">
+                        <div class="annotation-card thesis">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-function">段落功能</span>
+                            </div>
+                            <div class="annotation-title">MSCU模块设计动机</div>
+                            <div class="annotation-content">
+                                <strong>段落角色：</strong>阐述第一核心贡献的技术实现
+                                <br><br><strong>问题识别：</strong>
+                                <ul>
+                                    <li>标准近邻上采样执行空间插值</li>
+                                    <li>无法恢复下采样丢失的高频细节</li>
+                                    <li>可能降低定位精度</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="annotation-card evidence">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-logic">公式逻辑解析</span>
+                            </div>
+                            <div class="annotation-title">MSCU数据流</div>
+                            <div class="annotation-content">
+                                <strong>公式(1)解析：</strong>
+                                <br>① Up(X)：2×近邻上采样
+                                <br>② Ddw：3×3深度可分离卷积，增强局部细节
+                                <br>③ CS：通道洗牌，跨组通信
+                                <br>④ Sshift：方向循环移位，重分配空间线索
+                                <br>⑤ Dpw：点卷积，自适应融合权重
+                                <br><br><strong>关键创新：</strong>方向循环移位实现跨通道空间交互
+                            </div>
+                        </div>
+                        <div class="annotation-card concession">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-technique">技术让步</span>
+                            </div>
+                            <div class="annotation-title">对比传统方法</div>
+                            <div class="annotation-content">
+                                <strong>让步-反驳结构：</strong>
+                                <ul>
+                                    <li><strong>让步：</strong>标准通道洗牌只是重新排序通道</li>
+                                    <li><strong>反驳：</strong>本文移位操作通过方向循环移位实现跨组空间交互</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="annotation-card">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-weakness">技术细节</span>
+                            </div>
+                            <div class="annotation-title">参数选择缺乏依据</div>
+                            <div class="annotation-content">
+                                <strong>注意：</strong>
+                                <ul>
+                                    <li>为何选择四组？G=4的依据在后文消融实验中</li>
+                                    <li>移位方向（水平/垂直）的选择依据未说明</li>
+                                    <li>与EUBC、Dysample等方法的详细对比在实验部分</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- C3K2-CGB模块 -->
+        <section id="c3k2-cgb">
+            <div class="two-column">
+                <div class="original-column">
+                    <div class="column-header">论文原文 — B. C3K2-CGB模块</div>
+                    <div class="section-block">
+                        <div class="section-title">C3K2结构化的上下文引导块</div>
+                        <p>To improve feature extraction in complex backgrounds, we replace the C3K2 bottleneck in YOLO11 with the <span class="highlight-method">CGB [11]</span>. <span class="highlight-concession">The standard C3K2 uses single-scale convolutions, limiting its ability to capture both local and global context for small objects in cluttered scenes.</span></p>
+                        
+                        <p>CGB, as illustrated in Fig. 3, splits feature extraction into two parallel branches: <span class="highlight-method">Floc</span> uses 3 × 3 depthwise separable convolutions for fine-grained textures, while <span class="highlight-method">Fscur</span> employs dilated convolutions for broader semantic context. The fused features are processed as:</p>
+                        <p class="formula">joi_feat = σ(BP(Floc(X'), Fd_sur(X'))) ... (2)</p>
+                        <p class="formula">Y = Fglo(joi_feat) + X ... (3)</p>
+                        <p>where X' = F1×1(X) is the reduced feature, and <span class="highlight-method">Fglo</span> performs global refinement. CGB enhances small-object features while suppressing background interference through multiscale fusion and attention mechanisms.</p>
+                    </div>
+                </div>
+                <div class="annotation-column">
+                    <div class="column-header">中文批注 — C3K2-CGB模块</div>
+                    <div class="annotation-section">
+                        <div class="annotation-card thesis">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-function">段落功能</span>
+                            </div>
+                            <div class="annotation-title">C3K2-CGB模块设计</div>
+                            <div class="annotation-content">
+                                <strong>段落角色：</strong>阐述第二核心贡献的技术实现
+                                <br><br><strong>设计动机：</strong>
+                                <ul>
+                                    <li>标准C3K2使用单尺度卷积</li>
+                                    <li>无法同时捕获局部和全局上下文</li>
+                                    <li>复杂场景下表现受限</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="annotation-card evidence">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-logic">双分支设计</span>
+                            </div>
+                            <div class="annotation-title">Floc + Fscur 双分支架构</div>
+                            <div class="annotation-content">
+                                <strong>公式解析：</strong>
+                                <br>① X' = F1×1(X)：降维特征
+                                <br>② Floc：3×3深度可分离卷积 → 细粒度纹理
+                                <br>③ Fscur：膨胀卷积 → 更广语义上下文
+                                <br>④ BP：特征融合
+                                <br>⑤ Fglo：全局细化
+                                <br><br><strong>核心机制：</strong>多尺度融合 + 注意力机制增强特征、抑制背景干扰
+                            </div>
+                        </div>
+                        <div class="annotation-card concession">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-technique">技术让步</span>
+                            </div>
+                            <div class="annotation-title">对标准C3K2的隐性反驳</div>
+                            <div class="annotation-content">
+                                <strong>让步承认：</strong>标准C3K2使用单尺度卷积
+                                <br><strong>本文改进：</strong>双分支设计捕获局部细节和更广上下文
+                                <br><strong>增强机制：</strong>全局细化进一步处理
+                            </div>
+                        </div>
+                        <div class="annotation-card">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-weakness">技术细节</span>
+                            </div>
+                            <div class="annotation-title">模块设计的局限</div>
+                            <div class="annotation-content">
+                                <strong>注意：</strong>
+                                <ul>
+                                    <li>膨胀卷积的膨胀率选择未说明</li>
+                                    <li>残差连接(+ X)的作用在复杂场景下可能引入噪声</li>
+                                    <li>CGB在本文中的具体位置需参考图3</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SGQA模块 -->
+        <section id="sgqa">
+            <div class="two-column">
+                <div class="original-column">
+                    <div class="column-header">论文原文 — C. SGQA模块</div>
+                    <div class="section-block">
+                        <div class="section-title">基于SwiGLU的几何质量评估器</div>
+                        <p>Accurate assessment of bounding box quality is a critical challenge in small-object detection for remote sensing images. <span class="highlight-concession">Traditional location quality estimators (LQEs) [12] typically use MLP with ReLU activations to predict bounding box scores. However, ReLU's hard thresholding can cause gradient vanishing, limiting the ability to capture subtle features of small objects.</span></p>
+                        
+                        <p>To address this, <span class="highlight-method">SwiGLU</span> is introduced, originally from large language models, to enhance feature learning in LQE. Unlike standard MLP:</p>
+                        <p class="formula">h(l) = ReLU(W(l)h(l-1) + b(l)) ... (4)</p>
+                        <p>SwiGLU employs a gated dual-branch structure:</p>
+                        <p class="formula">h(l) = SiLU(Wgate·h(l-1)) ⊙ (Wup·h(l-1)) ... (5)</p>
+                        <p>where SiLU(x) = x · σ(x).</p>
+                        
+                        <p>In the improved LQE, bounding box regression outputs are first softmax-normalized. For each corner, the top-k probabilities and their mean are extracted as statistical features, which are then processed by a multilayer SwiGLU network to generate a quality adjustment score. The final score is obtained by fusing this quality score with the original classification score:</p>
+                        <p class="formula">Sfinal = Scls + Q ... (6)</p>
+                        
+                        <p>SwiGLU provides three main benefits: 1) <span class="highlight-method">smooth activation</span>, which stabilizes gradients and mitigates vanishing; 2) <span class="highlight-method">adaptive feature gating</span>, which modulates feature propagation based on input, enhancing robustness; and 3) <span class="highlight-method">enhanced nonlinearity</span>, introducing richer feature interactions for finer perception of bounding box quality differences.</p>
+                    </div>
+                </div>
+                <div class="annotation-column">
+                    <div class="column-header">中文批注 — SGQA模块</div>
+                    <div class="annotation-section">
+                        <div class="annotation-card thesis">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-function">段落功能</span>
+                            </div>
+                            <div class="annotation-title">SGQA模块：第三核心贡献</div>
+                            <div class="annotation-content">
+                                <strong>段落角色：</strong>阐述损失函数设计的创新点
+                                <br><br><strong>问题识别：</strong>
+                                <ul>
+                                    <li>边界框质量评估是关键技术挑战</li>
+                                    <li>传统LQE使用ReLU激活导致梯度消失</li>
+                                    <li>难以捕获小目标的细微特征</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="annotation-card evidence">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-logic">公式对比分析</span>
+                            </div>
+                            <div class="annotation-title">MLP vs SwiGLU</div>
+                            <div class="annotation-content">
+                                <strong>公式(4)：</strong>标准MLP with ReLU
+                                <br>→ 硬阈值可能导致梯度消失
+                                <br><br><strong>公式(5)：</strong>SwiGLU双分支结构
+                                <br>→ SiLU(x) = x·σ(x)：平滑激活
+                                <br>→ 门控机制：自适应特征门控
+                                <br><br><strong>公式(6)：</strong>最终得分融合
+                                <br>→ Sfinal = 分类分数 + 质量分数
+                            </div>
+                        </div>
+                        <div class="annotation-card concession">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-technique">跨领域创新</span>
+                            </div>
+                            <div class="annotation-title">从LLM到目标检测</div>
+                            <div class="annotation-content">
+                                <strong>创新来源：</strong>SwiGLU最初来自大语言模型
+                                <br><strong>迁移应用：</strong>目标检测的位置质量估计
+                                <br><strong>论证价值：</strong>跨领域方法迁移，增强方法新颖性
+                            </div>
+                        </div>
+                        <div class="annotation-card">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-weakness">技术细节</span>
+                            </div>
+                            <div class="annotation-title">潜在问题</div>
+                            <div class="annotation-content">
+                                <strong>注意：</strong>
+                                <ul>
+                                    <li>top-k的具体值未说明</li>
+                                    <li>SwiGLU层数的选择未讨论</li>
+                                    <li>SiLU vs ReLU的具体效率对比缺失</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 实验部分 -->
+        <section id="experiments">
+            <div class="two-column">
+                <div class="original-column">
+                    <div class="column-header">论文原文 — III. 实验</div>
+                    
+                    <div class="section-block">
+                        <div class="section-title">A. 实验设置</div>
+                        <p>The training settings are summarized in Table I. This study employs the public <span class="highlight-evidence">NWPU-10 and SIMD remote sensing datasets</span> for model training. The NWPU-10 dataset is split into training, validation, and test sets with a 6:2:2 ratio, while the SIMD dataset is divided into training and validation sets using an 8:2 split. All experiments are carried out on a cloud server running Ubuntu 22.04 and equipped with a single NVIDIA RTX 3080Ti GPU (12 GB).</p>
+                    </div>
+                    
+                    <div class="section-block">
+                        <div class="section-title">B. 对比实验</div>
+                        <p>As shown in Table III, on NWPU-10, <span class="highlight-evidence">SCG-YOLO attains 85.5% mAP@0.5</span>, outperforming YOLOv12n (+2.1%) and YOLOv13n (+2.5%) at similar complexity, while using fewer resources than higher accuracy models like CRKD-YOLO [13] (−13.3 GFLOPs and −3.0 M parameters) and maintaining higher accuracy than HAF-YOLO [14] (+0.5% at −1.8 M parameters and −5.4 GFLOPs).</p>
+                        <p>Similarly, on SIMD, in Table IV, <span class="highlight-evidence">SCG-YOLO reaches 82.3% mAP@0.5</span>, exceeding YOLOv12n (+2.6%) and YOLOv13n (+1.7%). Compared to AAD-YOLO [18], it achieves comparable accuracy (−0.4%) with lower resource usage (−1.0 M parameters, −1.7 GFLOPs).</p>
+                    </div>
+                    
+                    <div class="section-block">
+                        <div class="section-title">C. 消融实验</div>
+                        <p><strong>Individual Module Analysis:</strong> On NWPU VHR-10, <span class="highlight-evidence">SGQA demonstrates the highest efficiency (11.0 pp/GFLOP)</span> with minimal speed cost (−5.8% FPS), adding only 0.1 GFLOPs for a 1.1-pp gain. MSCU shows moderate efficiency (2.0 pp/GFLOP) with similar speed impact (−5.2%). CGB reduces GFLOPs by 0.4 while achieving a 1.0-pp gain but incurs a 24.7% FPS drop.</p>
+                        <p><strong>Combined Configurations:</strong> The MSCU+SGQA combination achieves practical efficiency (4.6 pp/GFLOP on NWPU and 2.8 pp/GFLOP on SIMD) while maintaining throughput above 113 FPS. The full model reaches peak accuracy (85.5% and 82.3% mAP@0.5) but with substantial speed trade-offs (86.1 and 87.5 FPS, approximately −35% across datasets).</p>
+                        <p><strong>Deployment Recommendations:</strong> These results suggest task-specific module selection: <span class="highlight-evidence">SGQA alone for latency-critical applications</span> (offering 9–11 pp/GFLOP with <6% speed cost), <span class="highlight-evidence">MSCU+SGQA for balanced scenarios</span> requiring >110 FPS with 2+ pp gains, and the full configuration where accuracy justifies ~35% slower inference.</p>
+                    </div>
+                </div>
+                <div class="annotation-column">
+                    <div class="column-header">中文批注 — III. 实验</div>
+                    <div class="annotation-section">
+                        <div class="annotation-card evidence">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-function">段落功能</span>
+                            </div>
+                            <div class="annotation-title">系统性实验验证</div>
+                            <div class="annotation-content">
+                                <strong>段落角色：</strong>用实证数据支撑方法论有效性
+                                <br><br><strong>实验设计：</strong>
+                                <ul>
+                                    <li><strong>两个数据集：</strong>NWPU-10（6:2:2划分）、SIMD（8:2划分）</li>
+                                    <li><strong>硬件环境：</strong>NVIDIA RTX 3080Ti (12GB)</li>
+                                    <li><strong>评估维度：</strong>mAP@0.5、mAP@0.5:0.95、参数量、FPS、GFLOPs</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="annotation-card evidence">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-logic">关键数据点</span>
+                            </div>
+                            <div class="annotation-title">核心性能指标</div>
+                            <div class="annotation-content">
+                                <strong>NWPU-10：</strong>
+                                <br>• mAP@0.5: 85.5%（+2.1% vs YOLOv12n）
+                                <br>• 6.4 GFLOPs，2.5M参数
+                                <br><br><strong>SIMD：</strong>
+                                <br>• mAP@0.5: 82.3%（+2.6% vs YOLOv12n）
+                                <br><br><strong>效率优势：</strong>比CRKD-YOLO少13.3 GFLOPs
+                            </div>
+                        </div>
+                        <div class="annotation-card evidence">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-logic">消融实验分析</span>
+                            </div>
+                            <div class="annotation-title">模块贡献验证</div>
+                            <div class="annotation-content">
+                                <strong>单独模块贡献：</strong>
+                                <br>• SGQA：最高效率（11.0 pp/GFLOP），速度损失仅5.8%
+                                <br>• MSCU：中等效率（2.0 pp/GFLOP）
+                                <br>• CGB：GFLOPs减少0.4，但FPS下降24.7%
+                                <br><br><strong>组合效果：</strong>
+                                <br>• MSCU+SGQA：平衡方案（>113 FPS，2+ pp提升）
+                                <br>• 完整模型：最高精度（85.5%/82.3%），但速度下降35%
+                            </div>
+                        </div>
+                        <div class="annotation-card evidence">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-technique">部署建议</span>
+                            </div>
+                            <div class="annotation-title">实践导向的实验结论</div>
+                            <div class="annotation-content">
+                                <strong>任务导向的建议：</strong>
+                                <ul>
+                                    <li><strong>延迟敏感：</strong>仅使用SGQA（<6%速度损失）</li>
+                                    <li><strong>平衡场景：</strong>MSCU+SGQA组合</li>
+                                    <li><strong>精度优先：</strong>完整配置</li>
+                                </ul>
+                                <strong>论证价值：</strong>提供了清晰的实践指导
+                            </div>
+                        </div>
+                        <div class="annotation-card">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-weakness">实验设计局限</span>
+                            </div>
+                            <div class="annotation-title">值得注意的问题</div>
+                            <div class="annotation-content">
+                                <strong>质疑点：</strong>
+                                <ul>
+                                    <li>仅两个数据集，泛化性论证不足</li>
+                                    <li>消融实验未包含SIMD的详细数据</li>
+                                    <li>FPS下降35%在实际应用中可能难以接受</li>
+                                    <li>与IRSTD-YOLO等方法的对比缺失</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 结论 -->
+        <section id="conclusion">
+            <div class="two-column">
+                <div class="original-column">
+                    <div class="column-header">论文原文 — IV. 结论</div>
+                    <div class="section-block">
+                        <p>This letter introduces <span class="highlight-thesis">SCG-YOLO</span>, an enhanced framework based on YOLOv11n for small-object detection in remote sensing images. The MSCU module restores high-frequency spatial details to improve localization accuracy. In the backbone, the C3K2-CGB employs a dual-branch structure to capture both local details and contextual information, refined through global attention for better feature representation in complex backgrounds. An SGQA is also integrated into the detection head, utilizing a dual-branch design to enhance bounding box evaluation.</p>
+                        <p>Experiments on the NWPU-10 and SIMD datasets demonstrate improved performance across multiple metrics, validating the effectiveness of each module. <span class="highlight-concession">Analysis indicates that contextual modeling can be further optimized in dense scenes, while inference efficiency remains to be enhanced.</span> Future work will focus on lightweight architecture design and scene-adaptive improvements to strengthen generalization and deployment in diverse remote sensing scenarios.</p>
+                    </div>
+                </div>
+                <div class="annotation-column">
+                    <div class="column-header">中文批注 — 结论</div>
+                    <div class="annotation-section">
+                        <div class="annotation-card thesis">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-function">段落功能</span>
+                            </div>
+                            <div class="annotation-title">总结与展望</div>
+                            <div class="annotation-content">
+                                <strong>段落角色：</strong>简明总结全文，提出未来方向
+                                <br><br><strong>核心贡献：</strong>
+                                <ul>
+                                    <li>MSCU：恢复高频空间细节</li>
+                                    <li>C3K2-CGB：双分支结构捕获局部和上下文</li>
+                                    <li>SGQA：双分支设计增强边界框评估</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="annotation-card concession">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-technique">承认局限性</span>
+                            </div>
+                            <div class="annotation-title">学术坦诚：指出不足</div>
+                            <div class="annotation-content">
+                                <strong>承认的局限：</strong>
+                                <ul>
+                                    <li>密集场景中上下文建模可进一步优化</li>
+                                    <li>推理效率有待提升</li>
+                                </ul>
+                                <br><strong>未来方向：</strong>
+                                <ul>
+                                    <li>轻量化架构设计</li>
+                                    <li>场景自适应改进</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 论证结构总览 -->
+        <section id="overview">
+            <div class="argument-overview">
+                <div class="overview-title">全文论证结构总览</div>
+                
+                <div class="argument-flow">
+                    <div class="flow-step">问题陈述</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">YOLO局限</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">MSCU</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">C3K2-CGB</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">SGQA</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">两数据集验证</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">消融实验</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">结论展望</div>
+                </div>
+
+                <div class="overview-grid">
+                    <div class="overview-card">
+                        <div class="overview-card-title">作者核心主张</div>
+                        <div class="overview-card-content">
+                            通过集成MSCU（多方向移位通道上采样）、C3K2-CGB（上下文引导块）和SGQA（几何质量评估器）三大模块，SCG-YOLO能够有效解决遥感图像小目标检测中的特征表示受限和定位精度不足问题，在NWPU-10和SIMD数据集上取得领先性能。
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <div class="overview-card-title">逻辑骨架</div>
+                        <div class="overview-card-content">
+                            <strong>问题：</strong>复杂环境下小目标特征表示受限、定位精度不足
+                            <br><strong>现状：</strong>标准上采样丢失高频细节、C3K2单尺度卷积、ReLU梯度消失
+                            <br><strong>论点：</strong>MSCU+C3K2-CGB+SGQA三大创新
+                            <br><strong>证据：</strong>NWPU-10和SIMD数据集、多个评估指标
+                            <br><strong>反驳：</strong>承认密集场景优化和推理效率局限
+                            <br><strong>结论：</strong>各模块有效性验证，未来轻量化设计
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <div class="overview-card-title">论证最强处</div>
+                        <div class="strength-item">
+                            <strong>部署建议的实践价值：</strong>消融实验不仅验证了各模块的有效性，还提供了清晰的任务导向部署建议（SGQA单独使用/MSCU+SGQA组合/完整配置），这种"实验到实践"的闭环论证增强了论文的实用价值。
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <div class="overview-card-title">论证最弱处</div>
+                        <div class="weakness-item">
+                            <strong>数据集覆盖不足：</strong>仅使用NWPU-10和SIMD两个数据集，且SIMD缺少消融实验的详细数据。与IRSTD-YOLO（4个数据集）和SOD-YOLOv10（4个数据集）相比，泛化性论证明显不足。
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <div class="overview-card-title">值得注意的论证技巧</div>
+                        <div class="overview-card-content">
+                            <ul>
+                                <li><strong>跨领域迁移：</strong>SwiGLU从LLM迁移到目标检测，增强创新性</li>
+                                <li><strong>效率指标：</strong>引入pp/GFLOP量化效率，论证更精确</li>
+                                <li><strong>模块独立性：</strong>每个模块可独立使用，提供灵活性</li>
+                                <li><strong>承认局限：</strong>结论部分讨论密集场景和推理效率</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <div class="overview-card-title">三篇小目标检测论文对比</div>
+                        <div class="overview-card-content">
+                            <table style="width:100%; font-size: 0.8rem; border-collapse: collapse;">
+                                <tr style="background: #1a2744; color: white;">
+                                    <th style="padding: 0.3rem; border: 1px solid #ddd;">特征</th>
+                                    <th style="padding: 0.3rem; border: 1px solid #ddd;">SCG-YOLO</th>
+                                    <th style="padding: 0.3rem; border: 1px solid #ddd;">SOD-YOLOv10</th>
+                                    <th style="padding: 0.3rem; border: 1px solid #ddd;">IRSTD-YOLO</th>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">基础框架</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">YOLO11</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">YOLOv10</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">YOLOv11</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">核心模块</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">MSCU+C3K2-CGB+SGQA</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">TransBone+AA-GFPN+AFP-IoU</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">EFE+IRSTE</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">创新来源</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">LLM (SwiGLU)</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">Transformer</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">经典图像处理(Sobel)</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">数据集数量</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">2个</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">4个</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">2个</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">承认局限</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">部分承认</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">未讨论</td>
+                                    <td style="padding: 0.3rem; border: 1px solid #ddd;">完整讨论</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <p>SCG-YOLO 论文双栏批注分析 | 基于IEEE Geoscience and Remote Sensing Letters, Vol. 23, 2026</p>
+        </footer>
+    </main>
+
+    <script>
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 响应式检测
+        function checkResponsive() {
+            const annotationColumn = document.querySelector('.annotation-column');
+            if (window.innerWidth <= 1024) {
+                annotationColumn.style.borderLeft = 'none';
+                annotationColumn.style.background = 'transparent';
+            } else {
+                annotationColumn.style.borderLeft = '4px solid var(--accent)';
+                annotationColumn.style.background = '#f9f9f9';
+            }
+        }
+        
+        window.addEventListener('resize', checkResponsive);
+        checkResponsive();
+    </script>
+</body>
+</html>
