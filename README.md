@@ -29,6 +29,84 @@ npm run dev
 - **Zod 严格 schema**：前后端共享类型，零类型漂移
 - **3 种入口**：PDF 上传 / 文本粘贴 / 离线演示
 
+## 🧠 技术路线
+
+### 1. 编排层 — 多 Agent 流水线
+
+```
+Orchestrator (3 阶段)
+  │
+  ├─ Stage 1: Splitter          ← LLM 切分 5–8 个章节
+  │   input:  整篇论文纯文本
+  │   output: { sectionId, sectionTitle, contentRange }[]
+  │
+  ├─ Stage 2: Section Analysts × N  ← 3 路并发（bounded queue）
+  │   input:  单个章节文本
+  │   output: AnnotationCard[] (5 种类型, 4 种徽章)
+  │
+  └─ Stage 3: Aggregator        ← 跨章节归纳
+      input:  全部 AnnotationCard
+      output: { strengths[], weaknesses[], keyInsights[] }
+```
+
+每阶段独立 schema、独立 prompt、独立超时，单阶段失败不污染整体。
+
+### 2. Prompt 工程 — 三明治结构
+
+```
+┌─ schema 头 ─────────────────────┐
+│ 输出 JSON，字段：type, title... │  ← 告诉模型"格式"
+├─ 枚举图例 ─────────────────────┤
+│ type ∈ {thesis, concept, ...}  │  ← 把模糊词变成可枚举值
+├─ few-shot 1 ──────────────────┤
+│ input → output 完整示例         │  ← 给 2 个正例
+├─ few-shot 2 ──────────────────┤
+│ input → output 完整示例         │
+├─ 当前任务 ─────────────────────┤
+│ 章节文本: ...                  │  ← 当前请求
+└──────────────────────────────┘
+```
+
+所有 prompt 集中在 [`lib/prompts.ts`](./lib/prompts.ts)，便于版本管理。
+
+### 3. 容错体系 — 三层防御
+
+| 层 | 文件 | 作用 |
+|---|---|---|
+| 重试层 | `lib/llm.ts` | 指数退避，max 3 次 |
+| 解析层 | `lib/agents/sanitize.ts` | Zod 失败 → 降级而非崩溃 |
+| 业务层 | `lib/agents/orchestrator.ts` | 单 Agent 失败 → 跳过该节继续 |
+
+### 4. 流式响应 — Server-Sent Events
+
+服务端推送 5 类事件：
+
+```
+meta            → { totalStages, model, estimatedTokens }
+stage           → { stage: 'split' | 'analyze' | 'aggregate', status }
+section/parsed  → { sections: [...] }
+section/analyzed→ { sectionId, cards: [...] }
+result          → { summary: { strengths, weaknesses } }
+done            → null
+error           → { stage, message }
+```
+
+前端 [`useStreamAnalyze`](./lib/hooks/useStreamAnalyze.ts) 订阅，**首屏 3s 可读**。
+
+### 5. 类型安全 — 端到端 Zod
+
+```
+lib/schemas.ts  ←  唯一真相源
+      ↓
+LLM Prompt       ←  编译时拼装（schema 头 + 枚举图例）
+      ↓
+LLM Output       ←  schema.parse() 严格校验
+      ↓
+React State      ←  z.infer 自动推导类型，零手动 interface
+```
+
+改 schema → 前后端编译同时报错，**零类型漂移**。
+
 ## 📁 仓库导航
 
 | 你想找什么 | 去看 |
