@@ -14,7 +14,7 @@ git clone https://github.com/yourname/paperpulse.git
 cd paperpulse
 npm install
 cp env.local.example .env.local
-# 在 .env.local 填入 MOONSHOT_API_KEY
+# 在 .env.local 填入 DEEPSEEK_API_KEY
 npm run dev
 ```
 
