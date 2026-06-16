@@ -5,7 +5,7 @@
 
 > **✨ 看看现在长啥样**
 
-打开 [演示](https://yourname.github.io/paperpulse) （或本地运行）→ 点"演示模式" → 一篇 SOD-YOLOv10 论文的离线批注立刻出现。
+打开 [演示](https://yourname.github.io/paperpulse) （或本地运行）→ 点"演示模式" → 一篇SCI论文的离线批注立刻出现。
 
 ## 🚀 30 秒上手
 
